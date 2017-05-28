@@ -324,3 +324,8 @@ void liberaLista(numerao *p){
 		}
 	}
 }
+
+		
+	
+	
+	
