@@ -23,6 +23,8 @@ void subtrai(numero *n1, numero *n2);
 void condSubtrai(numero *n1, numero *n2);
 void liberaLista(numerao *p);	
 numero *copiaLista(numero *n1);
+numero *multiplica(numero *n1, numero *n2);
+
 
 int main(int argc, char **argv)
 {
@@ -50,27 +52,22 @@ int main(int argc, char **argv)
 	//imprimeLista (n1->cabeca);
 	//printf("\n");
 	
-	condSubtrai(n1, n2);
+	//condSubtrai(n1, n2);
 	
-	imprimeLista (n1);
-	printf("\n");
-	imprimeLista (n2);
-	printf("\n");
-	
+	copy = multiplica(n1, n2);
 	//copy = copiaLista(n1);
 	//imprimeLista (copy);
 
 		
 	//liberaLista(n1->cabeca);
 	//liberaLista(n2->cabeca);
+	printf("\nmultiplicacao:");
+	imprimeLista (copy);
 	
-	//imprimeLista (n1);
-
-	
-	//if(n1 != NULL){
-	//	printf("nao desalocou\n\n");
+	//if(n1->cabeca->prox != NULL){
+	//	printf("\n %d\n\n", n1->cabeca->prox->dado);
 	//}
-	//	imprimeLista (n1);
+	imprimeLista (n1);
 
 	return 0;
 }
@@ -136,6 +133,7 @@ void imprimeLista (numero *num) {
 		for (p = p->prox; p != NULL; p = p->prox) 
 	      printf ("%d", p->dado);
   }
+  printf("\n");
 }
 
 /*funcao que soma numeros grandes*/
@@ -150,9 +148,9 @@ void soma(numero *n1, numero *n2){
 	if(n1->sinal == 1 && n2->sinal == 1){
 		n1->sinal = 1;
 	} else if(n1->sinal == 1 && n2->sinal ==0){
-		//condSubtrai(n2,n1);
+		condSubtrai(n2,n1);
 	}else if(n1->sinal == 0 && n2->sinal == 1){
-		//condSubtrai(n1,n2);
+		condSubtrai(n1,n2);
 	}
 	
 	p = n1->cabeca;
@@ -168,6 +166,7 @@ void soma(numero *n1, numero *n2){
 			/*se nao existir um elemento depois ele cria um novo elemento na lista*/
 			if(p->prox == NULL){
 				insereLista(1, n1->cabeca);
+				n1->tamanho ++;
 				p->dado = p->dado - 10;
 			}
 			/*se existir outro elemento na lista ele soma no proximo elemento 1 e o restante soma no elemento analisado*/
@@ -201,6 +200,8 @@ void condSubtrai(numero *n1, numero *n2){
 		else if(n1->sinal == 0 && n2->sinal == 1){
 			//considera que n1-(-n2) = n1+n2 e chama a funcao soma
 			soma(n1,n2);
+		}else{
+			subtrai(n1,n2);
 		}
 	}
 	//caso o tamanho do numero 1 seja menor que o numero dois (n2>n1)
@@ -225,43 +226,42 @@ void condSubtrai(numero *n1, numero *n2){
 		}
 		
 	}
+	
 	else if(n1->tamanho == n2->tamanho){
 		p = n1->cabeca;
 		q = n2->cabeca;
 		
-		for(i=n1->tamanho; i>0; i--){			
+		for(i=n1->tamanho; i>0; i--){
+					
 			if(p->prox->dado > q->prox->dado){
 				if((n1->sinal == 1 && n2->sinal == 0) || (n1->sinal == 0 && n2->sinal == 1)){
 					soma(n1,n2);
-					break;
+					return;
 				}
 				else{
 					subtrai(n1, n2);
-					break;
+					return;
 				}
 				
 			}else if(p->prox->dado < q->prox->dado){
 				if((n1->sinal == 1 && n2->sinal == 0) || (n1->sinal == 0 && n2->sinal == 1)){
 					soma(n1, n2);
-					break;
+					return;
 				}else if(n1->sinal ==1 && n2->sinal ==1){
 					subtrai(n2,n1);
 					n2->sinal = 0;
-					break;
+					return;
 				}else{
 					subtrai(n2,n1);
 					n2->sinal = 1;
-					break;
-				
+					return;
 				}
-			}else{
-				subtrai(n1,n2);
 			}
-
 			p = p->prox;
 			q = q->prox;
 		}
 	}
+	subtrai(n1,n2);
 }
 
 void subtrai(numero *n1, numero *n2){
@@ -287,18 +287,62 @@ void subtrai(numero *n1, numero *n2){
 	}
 }
 
-void multiplica(numero *n1, numero *n2){
-	int i, j;
+numero *multiplica(numero *n1, numero *n2){
+	int i, j, carry = 0, cont =0;
+	numero *resultado, *aux;
 	numerao *p, *q;
 	
-	for(i=0; i<=n1->tamanho; i++){
-		for(j=0; j<=n2->tamanho; j++){
-			
-			
-		}
+	resultado = malloc(sizeof(numero));
+	if((n1->sinal == 1 && n2->sinal == 0) || (n1->sinal == 0 && n2->sinal == 1)){
+		resultado->sinal = 1;
+	}else{
+		resultado->sinal  = 0;
 	}
+	
+	resultado->cabeca = malloc(sizeof(numerao));
+	resultado->cabeca->prox = NULL;
+	resultado->cabeca->dado = 0;
+	resultado->tamanho = 0;	
+	insereLista(0, resultado->cabeca);
+	 
+	aux = malloc(sizeof(numero));
+	aux->cabeca = malloc(sizeof(numerao));
+	aux->cabeca->prox = NULL;	
+	aux->tamanho = 0;
+	
+	for(p= n1->cabeca->prox; p != NULL; p = p->prox){
+		carry = 0;
+		for(j=0; j<cont; j++){
+			insereLista(0, aux->cabeca);
+			aux->tamanho++;
+		}
+		printf("aux antes: ");
+		imprimeLista(aux);
+		for(q= n2->cabeca->prox; q != NULL; q= q->prox){
+			i = (q->dado) * (p->dado) + carry;
+			carry = 0;
+			if(i>=10){
+				carry = i / 10;
+				i %= 10;
+			}
+			insereLista(i, aux->cabeca);
+			aux->tamanho++;
+		}
+		printf("aux depois: ");
+		imprimeLista(aux);
+		printf("resultado antes: ");
+		imprimeLista(resultado);
+		soma(resultado, aux);
+		printf("resultado depois: ");
+		imprimeLista(resultado);
+		liberaLista(aux->cabeca);
+		aux->cabeca = malloc(sizeof(numerao));
+		aux->cabeca->prox = NULL;	
+		cont ++;
+	}
+	insereLista(carry, resultado->cabeca);
+	return resultado;
 }
-
 numero *copiaLista(numero *n1){
 	numero 	*copia;
 	numerao *aux, *novo;
@@ -318,12 +362,7 @@ numero *copiaLista(numero *n1){
 }
 void liberaLista(numerao *p){
 	if(p != NULL){
-		numerao *lixo, *atual;
-		atual = p->prox;
-		while(atual != NULL){
-			lixo = atual->prox;
-			free(atual);
-			atual = lixo;
-		}
+		liberaLista(p->prox);
+		free(p);
 	}
 }
