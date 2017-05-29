@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -253,14 +254,16 @@ void condSubtrai(numero *n1, numero *n2){
 					break;
 				
 				}
+			}else{
+				subtrai(n1,n2);
 			}
+
 			p = p->prox;
 			q = q->prox;
 		}
 	}
-	subtrai(n1,n2);
 }
-s
+
 void subtrai(numero *n1, numero *n2){
 	numerao *p, *q;
 	int aux;
@@ -324,8 +327,3 @@ void liberaLista(numerao *p){
 		}
 	}
 }
-
-		
-	
-	
-	
