@@ -15,59 +15,88 @@ typedef struct numero{
 	numerao *cabeca;
 } numero;
 
+typedef struct{
+	int topo;
+	int tam;
+	numero **elem;
+}pilha;
+
 void insereLista(int aux, numerao *number);
 numero *criaNumeroString(char *str);
 void imprimeLista (numero *num);
-void soma(numero *n1, numero *n2);
-void subtrai(numero *n1, numero *n2);
-void condSubtrai(numero *n1, numero *n2);
+void soma(numero *n1, numero *n2,pilha *stack);
+void subtrai(numero *n1, numero *n2,pilha *stack);
+void condSubtrai(numero *n1, numero *n2,pilha *stack);
 void liberaLista(numerao *p);	
 numero *copiaLista(numero *n1);
-numero *multiplica(numero *n1, numero *n2);
+void multiplica(numero *n1, numero *n2, pilha *stack);
+void imprimePilha(pilha *p);
+numero *pop(pilha *p);
+void push(pilha *p, numero *n);
+int pilhaCheia(pilha *p);
+int pilhaVazia(pilha *p);
+void criaPilha(pilha *p);
+numero *retornaTopo(pilha *stack);
+
 
 
 int main(int argc, char **argv)
 {
-	char str[101];
-	int tam1, tam2, x;
-	numero *n1, *n2, *copy;
+	char str[1001];
+	numero *n1;
+	pilha *stack;
+	stack = malloc(sizeof(pilha));
 	
-	str[0] = '0'; //para entrar de primeira no while
+	criaPilha(stack);
 	
-	//while(strcmp(str, "FIM") != 0){
+	scanf("%s", str);
+	
+	while(strcmp(str, "FIM") != 0){
+		if(strcmp(str, "+") == 0){
+			soma(pop(stack), pop(stack), stack);
+			imprimeLista(stack->elem[stack->topo]);
+		}
+		else if(strcmp(str, "-") == 0){
+			condSubtrai(pop(stack), pop(stack), stack);
+			imprimeLista(stack->elem[stack->topo]);
+		}
+		else if((strcmp(str, "*") == 0)){
+			multiplica(pop(stack), pop(stack), stack);
+			imprimeLista(stack->elem[stack->topo]);
+		}
+		else if((strcmp(str, "/") == 0)){
+			//funcao que divide
+			imprimeLista(stack->elem[stack->topo]);
+		}
+		else if((strcmp(str, "%") == 0)){
+			//funcao que da o resto da divisao
+			imprimeLista(stack->elem[stack->topo]);
+		}
+		else{
+			n1 = criaNumeroString(str); //era pra colocar na pilha
+			push(stack, n1);
+		}
 		scanf("%s", str);
-		n1 = criaNumeroString(str);
-		scanf("%s", str);
-		n2 = criaNumeroString(str);
-		
-	//}
+	}
 	
-	imprimeLista (n1);
-	printf("\n");
-	imprimeLista (n2);
-	printf("\n");
 
-	//soma(n1, n2);
-	
-	//imprimeLista (n1->cabeca);
-	//printf("\n");
-	
-	//condSubtrai(n1, n2);
-	
-	copy = multiplica(n1, n2);
-	//copy = copiaLista(n1);
-	//imprimeLista (copy);
 
+	//soma(pop(stack), pop(stack), stack);
+	
+	
+	
+	//multiplica(pop(stack), pop(stack), stack);
+	//condSubtrai(pop(stack), pop(stack), stack);
+	printf("\n\n");
+	
+	//imprimePilha(stack);
+	//copy = multiplica(n1,n2);
 		
 	//liberaLista(n1->cabeca);
 	//liberaLista(n2->cabeca);
-	printf("\nmultiplicacao:");
-	imprimeLista (copy);
 	
-	//if(n1->cabeca->prox != NULL){
-	//	printf("\n %d\n\n", n1->cabeca->prox->dado);
-	//}
-	imprimeLista (n1);
+	//free(n1);
+	//free(n2);
 
 	return 0;
 }
@@ -79,6 +108,8 @@ numero *criaNumeroString(char *str){
 	
 	num = malloc(sizeof(numero));
 	number = malloc(sizeof(numerao));
+	number->prox = NULL;
+	number->dado = 0;
 	
 	if(str[0] == '-'){
 		num->sinal = 1;
@@ -137,24 +168,30 @@ void imprimeLista (numero *num) {
 }
 
 /*funcao que soma numeros grandes*/
-void soma(numero *n1, numero *n2){
+void soma(numero *n1, numero *n2, pilha *stack){
 	numerao *p, *q;
 	
 	if(n1->tamanho < n2->tamanho){
-		soma(n2, n1);
+		soma(n2, n1, stack);
+		return;
 	}
 	
 	
 	if(n1->sinal == 1 && n2->sinal == 1){
 		n1->sinal = 1;
 	} else if(n1->sinal == 1 && n2->sinal ==0){
-		condSubtrai(n2,n1);
+		n1->sinal = 0;
+		condSubtrai(n2,n1, stack);
+		return;
 	}else if(n1->sinal == 0 && n2->sinal == 1){
-		condSubtrai(n1,n2);
+		n2->sinal = 0;
+		condSubtrai(n1,n2, stack);
+		return;
 	}
 	
 	p = n1->cabeca;
 	q = n2->cabeca;
+	
 
 	/*soma e lemento a elemento da lista*/
 	while(p != NULL && q != NULL){
@@ -180,10 +217,13 @@ void soma(numero *n1, numero *n2){
 		p = p->prox;
 		q = q->prox;
 	}
-
+	
+	push(stack, n1);
+	liberaLista(n2->cabeca);
+	free(n2);
 }
 
-void condSubtrai(numero *n1, numero *n2){
+void condSubtrai(numero *n2, numero *n1, pilha  *stack){
 	numerao *p, *q;
 	int i;
 	
@@ -194,14 +234,15 @@ void condSubtrai(numero *n1, numero *n2){
 		if(n1->sinal == 1 && n2->sinal == 0){
 			//atribui a n2 = -n2 para ter -n1-n2 = -(n1+n2)
 			n2->sinal = 1;
-			soma(n1,n2);
+			soma(n1,n2, stack);
 		}
 		//caso o numero 1 seja positivo e o numero 2 negativo
 		else if(n1->sinal == 0 && n2->sinal == 1){
 			//considera que n1-(-n2) = n1+n2 e chama a funcao soma
-			soma(n1,n2);
+			n2->sinal = 0;
+			soma(n1,n2, stack);
 		}else{
-			subtrai(n1,n2);
+			subtrai(n1,n2, stack);
 		}
 	}
 	//caso o tamanho do numero 1 seja menor que o numero dois (n2>n1)
@@ -209,19 +250,19 @@ void condSubtrai(numero *n1, numero *n2){
 		if(n1->sinal == 1 && n2->sinal == 1){
 			n1->sinal = 0;
 			n2->sinal = 0;
-			subtrai(n2, n1);
+			subtrai(n2, n1, stack);
 		}
 		//caso n1 seja negativo e n2 positivo -n2-n2 = -(n1+n2) entao chama a funcao soma
 		else if(n1->sinal == 1 && n2->sinal == 0){
 			n2->sinal = 1;
-			soma(n1,n2);
+			soma(n1,n2, stack);
 		}
 		//caso n1-(-n2) = n1+n2, entao chama a funcao soma para ambos positivos
 		else if(n1->sinal == 0 && n2->sinal == 1){
 			n2->sinal =0;
-			soma(n1,n2);
+			soma(n1,n2,stack);
 		}else if(n1->sinal == 0 && n2->sinal == 0){
-			subtrai(n2,n1);
+			subtrai(n2,n1, stack);
 			n2->sinal = 1;
 		}
 		
@@ -235,24 +276,24 @@ void condSubtrai(numero *n1, numero *n2){
 					
 			if(p->prox->dado > q->prox->dado){
 				if((n1->sinal == 1 && n2->sinal == 0) || (n1->sinal == 0 && n2->sinal == 1)){
-					soma(n1,n2);
+					soma(n1,n2, stack);
 					return;
 				}
 				else{
-					subtrai(n1, n2);
+					subtrai(n1, n2,stack);
 					return;
 				}
 				
 			}else if(p->prox->dado < q->prox->dado){
 				if((n1->sinal == 1 && n2->sinal == 0) || (n1->sinal == 0 && n2->sinal == 1)){
-					soma(n1, n2);
+					soma(n1, n2, stack);
 					return;
 				}else if(n1->sinal ==1 && n2->sinal ==1){
-					subtrai(n2,n1);
+					subtrai(n2,n1,stack);
 					n2->sinal = 0;
 					return;
 				}else{
-					subtrai(n2,n1);
+					subtrai(n2,n1,stack);
 					n2->sinal = 1;
 					return;
 				}
@@ -260,11 +301,12 @@ void condSubtrai(numero *n1, numero *n2){
 			p = p->prox;
 			q = q->prox;
 		}
+	}else{
+		subtrai(n1,n2,stack);
 	}
-	subtrai(n1,n2);
 }
 
-void subtrai(numero *n1, numero *n2){
+void subtrai(numero *n1, numero *n2, pilha *stack){
 	numerao *p, *q;
 	int aux;
 	
@@ -285,11 +327,14 @@ void subtrai(numero *n1, numero *n2){
 		p = p->prox;
 		q = q->prox;
 	}
+	push(stack, n1);
+	liberaLista(n2->cabeca);
+	free(n2);
 }
 
-numero *multiplica(numero *n1, numero *n2){
+void multiplica(numero *n1, numero *n2, pilha *stack){
 	int i, j, carry = 0, cont =0;
-	numero *resultado, *aux;
+	numero *resultado, *aux, *n;
 	numerao *p, *q;
 	
 	resultado = malloc(sizeof(numero));
@@ -298,13 +343,17 @@ numero *multiplica(numero *n1, numero *n2){
 	}else{
 		resultado->sinal  = 0;
 	}
-	
+
 	resultado->cabeca = malloc(sizeof(numerao));
 	resultado->cabeca->prox = NULL;
 	resultado->cabeca->dado = 0;
-	resultado->tamanho = 0;	
+	resultado->tamanho = 1;	
 	insereLista(0, resultado->cabeca);
+	push(stack, resultado);
 	 
+	printf("lista antes de fazer a multiplica:");
+	imprimePilha(stack);
+	
 	aux = malloc(sizeof(numero));
 	aux->cabeca = malloc(sizeof(numerao));
 	aux->cabeca->prox = NULL;	
@@ -316,8 +365,7 @@ numero *multiplica(numero *n1, numero *n2){
 			insereLista(0, aux->cabeca);
 			aux->tamanho++;
 		}
-		printf("aux antes: ");
-		imprimeLista(aux);
+		
 		for(q= n2->cabeca->prox; q != NULL; q= q->prox){
 			i = (q->dado) * (p->dado) + carry;
 			carry = 0;
@@ -328,20 +376,16 @@ numero *multiplica(numero *n1, numero *n2){
 			insereLista(i, aux->cabeca);
 			aux->tamanho++;
 		}
-		printf("aux depois: ");
-		imprimeLista(aux);
-		printf("resultado antes: ");
-		imprimeLista(resultado);
-		soma(resultado, aux);
-		printf("resultado depois: ");
-		imprimeLista(resultado);
+		
+		soma(pop(stack), aux, stack);
+		
 		liberaLista(aux->cabeca);
 		aux->cabeca = malloc(sizeof(numerao));
 		aux->cabeca->prox = NULL;	
 		cont ++;
 	}
-	insereLista(carry, resultado->cabeca);
-	return resultado;
+
+	insereLista(carry, (retornaTopo(stack))->cabeca);
 }
 numero *copiaLista(numero *n1){
 	numero 	*copia;
@@ -365,4 +409,44 @@ void liberaLista(numerao *p){
 		liberaLista(p->prox);
 		free(p);
 	}
+}
+
+void criaPilha(pilha *p){
+	p->topo = -1;
+	p->tam = 10;
+	p->elem = (numero **)malloc (sizeof(numero *) * 10); //esse negocio tem que ser dinamico e dar realloc com o tempo	
+}
+
+int pilhaVazia(pilha *p){
+	if(p->topo == -1)	return 1; //vazia
+	else return 0; //nao vazia
+}
+
+int pilhaCheia(pilha *p){
+	if(p->topo == p->tam -1) return 1; //esta cheia
+	else return 0; //nao esta cheia
+}
+
+void push(pilha *p, numero *n){
+	p->topo ++;
+	p->elem[p->topo] = n;
+}
+
+numero *pop(pilha *p){
+	numero *aux;
+	aux = p->elem[p->topo];
+	p->topo --;
+	return aux;
+}
+
+void imprimePilha(pilha *p){
+	int i;
+	for(i=p->topo; i>=0; i--){
+		imprimeLista(p->elem[i]);
+	}
+	printf("\n");
+}
+
+numero *retornaTopo(pilha *p){
+	return p->elem[p->topo];
 }
